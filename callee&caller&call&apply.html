@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>callee caller call apply 自执行函数</title>
+</head>
+<style type="text/css">
+	div>p{
+		word-break: break-all;
+	}
+	div{
+		border:2px solid black;
+		margin: auto;
+		width: 700px;
+	}
+ul{
+	list-style: none;
+}
+ul>li{
+	display: inline-block;
+}
+ul>li:hover{
+	cursor: pointer;
+}
+.display{
+	display: none;
+}
+</style>
+<body>
+<div>
+	<p>callee指向的是当前函数 与自执行函数联合使用</p>
+	<p>caller指向调用当前函数的函数 通常做测试用</p>
+	<p>call和apply可以改变函数体内部this的指向，只是传递的参数不一样，apply可以传递数组参数，因为它可以把数组转化成参数列表形式，而call不能</p>
+	<p>arguments是函数接收到的参数列表</p>
+</div>
+<ul>
+	<li>
+	第一项
+	</li>
+	<li>
+	第二项
+	</li>
+	<li>
+	第二项
+	</li>
+</ul>
+<p class='display'>1111111111111111111</p>
+<p class='display'>2222222222222222222222222</p>
+<p class='display'>333333333333333333333333333</p>
+</body>
+<script type="text/javascript">
+	//demo1 callee
+	function fn(){
+		console.log(arguments.callee);//函数本身 arguments是个参数数组
+	}
+	fn();
+
+	//自执行函数：声明并立即执行的函数
+	(function fn1(){
+		console.log('1');
+	})();
+
+	//利用函数自执行方法的选项卡
+	window.onload=function(){
+		var oIput=document.getElementsByTagName('li');
+		var oP=document.getElementsByClassName('display');
+		for(var i=0;i<oIput.length;i++){
+			(function(index){//传入参数i
+				oIput[index].onclick=function(){//不用给每个按钮和p添加索引，直接传入参数i,在内部函数直接调用接收到的参数就可以，index就是匿名函数接收到的参数值
+					//清除所有选项卡样式
+					for(var j=0;j<oIput.length;j++){
+						oIput[j].style.background='';
+						oP[j].style.display='none';
+					}
+				oIput[index].style.background='yellow';
+				oP[index].style.display='block';
+				}
+			})(i);
+		}
+	}
+
+	//demo2 caller 调用当前函数的函数
+	function a(){
+		console.log(a.caller,'调用a的函数');//null 自执行函数不能用caller
+	}
+	a();
+
+	function b(){
+		console.log(b.caller,'调用b的函数');//函数c（）
+	}
+	function c(){
+		b();
+	}
+	c();
+
+	//demo3 call 通过call调用函数，可以改变函数体内部的this指向，并同时可以传参
+	//call(obj,para1,para2,...)
+	function m(a,b){
+		console.log(this,'未指定this');//window this指向的是调用当前函数体的对象
+		console.log(a,b,'m(2,3)');
+	}
+	m.call(null,2,3);//不更改this指向时，null一定要写上。此外call(obj,para1,para2,...)里面的参数个数一定要和调用call的函数的参数个数一样，因此call要求传的参数个数要确定.
+
+	function n(a,b){
+		console.log(arguments,'arguments数组');
+		console.log(this,'指定this');
+		console.log(a,b,'n(document,3,4)');
+	}
+	n.call(document,3,4);
+
+	//demo4 apply 通过apply调用函数，能改变函数体内部的this指向，同时可以传数组形式的参数
+	//apply(obj,[para1,para2,para3,....]),apply()可以自动将参数数组转化成参数列表[para1,para2,...]>(para1,para2,....)
+	function x(args){ 
+		console.log(this,'apply没改this');//window this指向的是调用当前函数体的对象
+		console.log(args,'apply参数列表');
+	}
+	x.apply(null,[1,2,3,4]);
+
+	function y(a,b,c,d){
+		console.log(this,'apply改变this');
+		console.log(a,b,c,d,'apply参数列表');
+	}
+	y.apply(document,[6,7,8,9]);
+
+	//apply妙用:apply可以劫持调用该方法apply的对象的方法，继承对象的属性。
+	//1.继承属性
+	function Person(name,age){
+		this.name=name;
+		this.age=age;
+	}
+	function Student(name,age,grade){
+		console.log(this,'Student');
+		Person.apply(this,arguments);//继承父类Person的name和age属性 this是student构造函数,这句话就是在调用Person构造函数时候，更改了Person里面的this为Student,并传入了参数arguments[name,age,grade],但是只用了name和age两个属性,由于arguments是数组，所以用apply()方法.
+		this.grade=grade;
+	}
+	var student=new Student('xx','12','三年级');
+	console.log("name:"+student.name+';年龄:'+student.age+';年级:'+student.grade);
+
+	//2.劫持方法
+	//Math.min(),Math.max()的参数都只能是para1,para2,..参数列表，如果要找到数组中的最大值，可以借用apply方法
+	//eg1
+	var arr=[1,2,5,6,3,8,22,44];
+	var result=Math.min.apply(null,arr);//没有对象去调用Math.min方法，只是返回一个结果，所以保持原有的调用对象;要排的数组arr传入方法Math.min（）中，arr数组自动转化为参数列表，Math.min可以用了
+	console.log(result);
+
+	//eg2
+	var arr1=[1,2,3];
+	var arr2=[4,5,6];
+	//利用push可以实现两个数组的连接，虽然数组有contact这个方法。
+	//push(para1,para2,para3),所以要将arr2转化成参数列表才能进行push。
+	Array.prototype.push.apply(arr1,arr2);
+	//arr1 要调用push方法，且push参数为arr2的元素，上式我认为可以写成：
+	arr1.push.apply(arr1,arr2);//push函数调用的主体实质上为Array这个对象,arr1只不过是Array的一个实例，虽然arr1继承了Array的方法，但此时push方法内的this为Array，所以要指出具体的调用主体，所以apply第一个参数一定是arr1，而不能是null
+	console.log(arr1);
+</script>
+</html>
