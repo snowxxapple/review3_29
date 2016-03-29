@@ -97,9 +97,9 @@ function x(args){
 
 `apply`方法可以劫持调用`apply()`方法的对象的方法，继承该对象的属性。
 
-+ ** 继承属性(面向对象编程中常用的) **
++ **继承属性(面向对象编程中常用的)**
 
-  **示例:**
+**示例:**
 
 ``` javascript
 function Person(name,age){
@@ -116,7 +116,7 @@ console.log("name:"+student.name+';年龄:'+student.age+';年级:'+student.grade
 
 调用`apply`方法的是`Person`函数，改变`Person`函数内部`this`的指向为`Student`,并传入了`arguments['xx','12','一年级']`参数，但是只用了`name`,`age`两个属性值，那么`Student.name=name;` `Student.age=age;`因此`Student`构造函数继承了父类`Person`的两个属性值，除此之外`Student`构造函数还给`Student`对象添加了`grade`新属性。
 
-+ ** 劫持方法 **
++ **劫持方法**
 
 **示例1:**
 
